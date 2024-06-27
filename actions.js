@@ -36,7 +36,37 @@ const ACTION_OPTIONS = [
 		tooltip: 'Format as CUE number (\'1\', \'1.2\', or \'1.2.3\') or Timecode (\'00:00:00:00\').',
 		default: '1.0.0',
 		regex: '/^\\d+(\\.\\d+(\\.\\d+)?)?$|^\\d{2}:\\d{2}:\\d{2}:\\d{2}$/'
-	}
+	},
+	{
+		type: 'checkbox',
+		label: 'Track Transition',
+		id: 'transitionType',
+		default: false,
+	},
+	{
+		type: 'textinput',
+		label: 'Transition time (Seconds)',
+		id: 'time',
+		default: '1',
+		regex: '/^\\d+(\\.\\d+)?$/', // positive float
+		isVisible: (options) => !options.transitionType,
+	},
+	{
+		type: 'textinput',
+		label: 'Transition Track',
+		id: 'transitionTrack',
+		default: '',
+		regex: '/.*/',
+		isVisible: (options) => options.transitionType,
+	},
+	{
+		type: 'textinput',
+		label: 'Transition Section',
+		id: 'transitionSection',
+		default: '',
+		regex: '/.*/',
+		isVisible: (options) => options.transitionType,
+	},
 ]
 
 function sendCommand(self, formattedCommand) {
@@ -94,70 +124,13 @@ export function getActionDefinitions(self) {
 				sendCommand(self, formattedCommand)
 			},
 		},
-		GotoCueXFTime: {
-			name: "Go To Cue: Crossfade (Time)",
-			options: [
-				...ACTION_OPTIONS,
-				{
-					type: 'textinput',
-					label: 'Transition time (Seconds)',
-					id: 'time',
-					default: '1',
-					regex: '/^\\d+(\\.\\d+)?$/', // positive float
-				},
-			],
+		GotoCueXF: {
+			name: "Go To Cue: Crossfade",
+			options: ACTION_OPTIONS,
 			callback: async (action) => {
 				const player = await self.parseVariablesInString(action.options.player)
 				const command = await self.parseVariablesInString(action.options.command)
 				const track = await self.parseVariablesInString(action.options.track)
-				const transition = parseFloat(await self.parseVariablesInString(action.options.time))
-				let location
-
-				try {
-					location = await parseLocationRegex(action.options.target)
-				} catch (error) {
-					self.log('error', error.message)
-					return
-				}
-	
-				const formattedCommand = {
-					track_command: {
-						player,
-						command,
-						track,
-						location,
-						transition,
-					},
-				}
-	
-				sendCommand(self, formattedCommand)
-			},
-		},
-		GotoCueXFTrackSection: {
-			name: "Go To Cue: Crossfade (Track Section)",
-			options: [
-				...ACTION_OPTIONS,
-				{
-					type: 'textinput',
-					label: 'Transition Track',
-					id: 'transitionTrack',
-					default: '',
-					regex: '/.*/'
-				},
-				{
-					type: 'textinput',
-					label: 'Transition Section',
-					id: 'transitionSection',
-					default: '',
-					regex: '/.*/'
-				},
-			],
-			callback: async (action) => {
-				const player = await self.parseVariablesInString(action.options.player)
-				const command = await self.parseVariablesInString(action.options.command)
-				const track = await self.parseVariablesInString(action.options.track)
-				const transitionTrack = await self.parseVariablesInString(action.options.transitionTrack)
-				const transitionSection = await self.parseVariablesInString(action.options.transitionSection)
 				let location
 
 				try {
@@ -167,20 +140,124 @@ export function getActionDefinitions(self) {
 					return
 				}
 
-				const formattedCommand = {
-					track_command: {
-						player,
-						command,
-						track,
-						location,
-						transitionTrack,
-						transitionSection
-					},
+				let formattedCommand
+
+				if (action.options.transitionType) {
+					const transitionTrack = await self.parseVariablesInString(action.options.transitionTrack)
+					const transitionSection = await self.parseVariablesInString(action.options.transitionSection)
+					formattedCommand = {
+						track_command: {
+							player,
+							command,
+							track,
+							location,
+							transitionTrack,
+							transitionSection
+						},
+					}
+				} else {
+					const transition = parseFloat(await self.parseVariablesInString(action.options.time))
+					formattedCommand = {
+						track_command: {
+							player,
+							command,
+							track,
+							location,
+							transition,
+						},
+					}
 				}
 
 				sendCommand(self, formattedCommand)
 			},
 		},
+		// GotoCueXFTime: {
+		// 	name: "Go To Cue: Crossfade (Time)",
+		// 	options: [
+		// 		...ACTION_OPTIONS,
+		// 		{
+		// 			type: 'textinput',
+		// 			label: 'Transition time (Seconds)',
+		// 			id: 'time',
+		// 			default: '1',
+		// 			regex: '/^\\d+(\\.\\d+)?$/', // positive float
+		// 		},
+		// 	],
+		// 	callback: async (action) => {
+		// 		const player = await self.parseVariablesInString(action.options.player)
+		// 		const command = await self.parseVariablesInString(action.options.command)
+		// 		const track = await self.parseVariablesInString(action.options.track)
+		// 		const transition = parseFloat(await self.parseVariablesInString(action.options.time))
+		// 		let location
+
+		// 		try {
+		// 			location = await parseLocationRegex(action.options.target)
+		// 		} catch (error) {
+		// 			self.log('error', error.message)
+		// 			return
+		// 		}
+	
+		// 		const formattedCommand = {
+		// 			track_command: {
+		// 				player,
+		// 				command,
+		// 				track,
+		// 				location,
+		// 				transition,
+		// 			},
+		// 		}
+	
+		// 		sendCommand(self, formattedCommand)
+		// 	},
+		// },
+		// GotoCueXFTrackSection: {
+		// 	name: "Go To Cue: Crossfade (Track Section)",
+		// 	options: [
+		// 		...ACTION_OPTIONS,
+		// 		{
+		// 			type: 'textinput',
+		// 			label: 'Transition Track',
+		// 			id: 'transitionTrack',
+		// 			default: '',
+		// 			regex: '/.*/'
+		// 		},
+		// 		{
+		// 			type: 'textinput',
+		// 			label: 'Transition Section',
+		// 			id: 'transitionSection',
+		// 			default: '',
+		// 			regex: '/.*/'
+		// 		},
+		// 	],
+		// 	callback: async (action) => {
+		// 		const player = await self.parseVariablesInString(action.options.player)
+		// 		const command = await self.parseVariablesInString(action.options.command)
+		// 		const track = await self.parseVariablesInString(action.options.track)
+		// 		const transitionTrack = await self.parseVariablesInString(action.options.transitionTrack)
+		// 		const transitionSection = await self.parseVariablesInString(action.options.transitionSection)
+		// 		let location
+
+		// 		try {
+		// 			location = await parseLocationRegex(action.options.target)
+		// 		} catch (error) {
+		// 			self.log('error', error.message)
+		// 			return
+		// 		}
+
+		// 		const formattedCommand = {
+		// 			track_command: {
+		// 				player,
+		// 				command,
+		// 				track,
+		// 				location,
+		// 				transitionTrack,
+		// 				transitionSection
+		// 			},
+		// 		}
+
+		// 		sendCommand(self, formattedCommand)
+		// 	},
+		// },
 		TransportCommand: {
 			name: "Transport Command",
 			options: ACTION_OPTIONS.slice(0,2),
