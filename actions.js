@@ -98,7 +98,12 @@ export function getActionDefinitions(self) {
 	return {
 		GotoCue: {
 			name: "Go To Cue",
-			options: ACTION_OPTIONS,
+			options: [
+				ACTION_OPTIONS[0], // Command
+				ACTION_OPTIONS[1], // Transport
+				ACTION_OPTIONS[2], // Track
+				ACTION_OPTIONS[3]  // Target
+			],
 			callback: async (action) => {
 				const player = await self.parseVariablesInString(action.options.player)
 				const command = await self.parseVariablesInString(action.options.command)
