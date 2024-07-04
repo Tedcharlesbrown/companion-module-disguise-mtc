@@ -19,6 +19,7 @@ const ACTION_OPTIONS = [
 		id: 'player',
 		default: '',
 		tooltip: 'Transport to target, ex: "default"',
+		useVariables: true,
 		regex: '/.*/'
 	},
 	{
@@ -27,6 +28,7 @@ const ACTION_OPTIONS = [
 		id: 'track',
 		default: '',
 		tooltip: 'Track to target, ex: "Track 1"',
+		useVariables: true,
 		regex: '/.*/'
 	},
 	{
@@ -35,6 +37,7 @@ const ACTION_OPTIONS = [
 		id: 'target',
 		tooltip: 'Format as CUE number (\'1\', \'1.2\', or \'1.2.3\') or Timecode (\'00:00:00:00\').',
 		default: '1.0.0',
+		useVariables: true,
 		regex: '/^\\d+(\\.\\d+(\\.\\d+)?)?$|^\\d{2}:\\d{2}:\\d{2}:\\d{2}$/'
 	},
 	{
@@ -49,13 +52,16 @@ const ACTION_OPTIONS = [
 		id: 'time',
 		default: '1',
 		regex: '/^\\d+(\\.\\d+)?$/', // positive float
+		useVariables: true,
 		isVisible: (options) => !options.transitionType,
 	},
 	{
 		type: 'textinput',
 		label: 'Transition Track',
 		id: 'transitionTrack',
+		tooltip: 'Track to target, ex: "Transitions"',
 		default: '',
+		useVariables: true,
 		regex: '/.*/',
 		isVisible: (options) => options.transitionType,
 	},
@@ -63,8 +69,10 @@ const ACTION_OPTIONS = [
 		type: 'textinput',
 		label: 'Transition Section',
 		id: 'transitionSection',
+		tooltip: 'Section to target, ex: "Crossfade"',
 		default: '',
 		regex: '/.*/',
+		useVariables: true,
 		isVisible: (options) => options.transitionType,
 	},
 ]
